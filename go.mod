@@ -1,6 +1,6 @@
 module gorcom
 
-go 1.23.0
+go 1.22
 
 require gotest.tools/v3 v3.5.2
 
