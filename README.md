@@ -41,3 +41,16 @@ pm create ./packet.json
 pm update ./packages.json
 
 PS: Можно использовать любые допущения которые сделают разработку тестового задания проще
+
+
+{
+ "name": "packet-1",
+ "ver": "1.10",
+ "targets": [
+  "./archive_this1/*.txt",
+  {"path": "./archive_this2/*", "exclude": "*.tmp"}
+    ],
+ "packets": [
+  {"name": "packet-3", "ver": "<= 2.0"}
+    ]
+}

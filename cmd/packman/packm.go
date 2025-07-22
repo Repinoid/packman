@@ -28,28 +28,23 @@ func main() {
 
 func Run(ctx context.Context) (err error) {
 
-	data := `{
-				"name": "packet-1",
-				"ver": "1.10",
-				"targets": [
-					"./archive_this1/*.txt",
-					{"path": "./archive_this2/*", "exclude": "*.tmp"}
-						],
-				"packets": [
-				{"name": "packet-3", "ver": "<=2.0"}
-				]
-				}`
+	// data, err := os.ReadFile("packet.json")
+	// if err != nil {
+	// 	models.Logger.Error("os.ReadFile  ", "err", err)
+	// 	return
+	// }
 
-	_ = data
-	upa, err := functions.Unmar([]byte(data))
-	if err != nil {
-		return
-	}
+	// upa, err := functions.Unmar([]byte(data))
+	// if err != nil {
+	// 	return
+	// }
 
-	fmt.Printf("%+v\n", upa)
+	// fmt.Printf("%+v\n", upa)
 
-	a, err := functions.Walk("../../cmd/packman/*pack*", "*.go*")
-	fmt.Printf("%+v %v\n", a, err)
+	// err = functions.Upacker(upa)
 
-	return nil
+	op, right, err := functions.ParseComparisonWithRegex("  <  2.0  ")
+	fmt.Printf("Parsed: op='%s', right='%s' %v\n", op, right, err)
+
+	return
 }
