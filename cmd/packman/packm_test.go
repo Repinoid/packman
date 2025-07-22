@@ -1,6 +1,7 @@
 package main
 
 import (
+	"gorcom/internal/functions"
 	"testing"
 
 	"gotest.tools/v3/assert"
@@ -64,7 +65,7 @@ func Test_unmar(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := unmar([]byte(tt.data))
+			_, err := functions.Unmar([]byte(tt.data))
 			if tt.isErr {
 				assert.ErrorContains(t, err, tt.errStr)
 			} else {
