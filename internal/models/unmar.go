@@ -53,7 +53,6 @@ func (upa *Upack) UnmarshalJSON(data []byte) (err error) {
 			} else {
 				upa.Targets[i] = map[string]string{"path": v["path"].(string), "exclude": v["exclude"].(string)}
 			}
-
 		}
 	}
 	for _, t := range upa.Packets {

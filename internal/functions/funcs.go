@@ -85,7 +85,19 @@ func Upacker(upa *models.Upack) (err error) {
 		}
 		fmt.Printf("%+v %v\n", filesToZip, err)
 
+		op, right := "", ""
 		for _, pack := range upa.Packets {
+			if pack.Ver != "" {
+				op, right, err = ParseComparisonWithRegex(pack.Ver)
+				if err != nil {
+					return fmt.Errorf("ошибка условия версии  %s: %v", pack.Ver, err)
+				}
+			}
+			// если не выполляется условие, заданное в версии пакета, пример  {"name": "packet-3", "ver": "<="2.0" },
+			if !compara(upa.Version, op, right) {
+				continue
+			}
+
 			zf, err := os.Create(pack.Name)
 			if err != nil {
 				return fmt.Errorf("ошибка создания файла %s: %v", pack.Name, err)
@@ -143,3 +155,34 @@ func ParseComparisonWithRegex(expr string) (op, right string, err error) {
 }
 
 // https://go.dev/play/p/j5B0nr55_or
+
+func compara(left, op, right string) bool {
+	verOk := false
+	switch op {
+	case "==":
+		if left == right {
+			verOk = true
+		}
+	case "!=":
+		if left != right {
+			verOk = true
+		}
+	case "<":
+		if left < right {
+			verOk = true
+		}
+	case ">":
+		if left > right {
+			verOk = true
+		}
+	case ">=":
+		if left >= right {
+			verOk = true
+		}
+	case "<=":
+		if left <= right {
+			verOk = true
+		}
+	}
+	return verOk
+}
