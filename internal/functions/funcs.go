@@ -137,6 +137,7 @@ func Upacker(upa *models.Upack) (err error) {
 	return
 }
 
+// ParseComparisonWithRegex определяет корректность условия по версии пакета, возвращает строку операции сравнения и строку с номером версии
 func ParseComparisonWithRegex(expr string) (op, right string, err error) {
 	// Регулярное выражение для операторов сравнения
 	re := regexp.MustCompile(`^\s*(.*?)\s*(>=|<=|==|!=|>|<)\s*(.*?)\s*$`)
