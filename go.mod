@@ -2,7 +2,6 @@ module gorcom
 
 go 1.23.0
 
-// toolchain go1.23.11
 
 require (
 	github.com/pkg/sftp v1.13.9
