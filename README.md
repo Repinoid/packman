@@ -2,9 +2,9 @@
 Перейти в эту папку<br>
 ***cd cmd/packman***
 
-Поднять SSL server
+Поднять SSL server<br>
 ***docker compose up -d***
-
+<hr>
 Далее как в техзадании 
 ```
 pm create ./packet.json
