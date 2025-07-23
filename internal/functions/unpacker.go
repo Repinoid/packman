@@ -15,7 +15,8 @@ func UnPack(upa models.Packages) (err error) {
 		}
 	}
 	for _, u := range upa.Packs {
-		err = ssher.Receiver(models.SSHConf.Host, models.SSHConf.User, models.SSHConf.Password, u.Name, "/" + u.Name)
+		err = ssher.DownloadBySSH(models.SSHConf.Host, models.SSHConf.User, models.SSHConf.Password, "/"+u.Name, u.Name+".tmp")
+		//		err = ssher.DownloadBySSH(models.SSHConf.Host, models.SSHConf.User, models.SSHConf.Password, u.Name+".temp", "/"+u.Name)
 		if err != nil {
 			return err
 		}

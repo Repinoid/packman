@@ -9,16 +9,19 @@ services:
     environment:
       - TZ=UTC
     volumes:
-      - ./ssh-data:/root  # (опционально) для сохранения данных между перезапусками
+      - ./ssh-data:/root  # Монтирование домашней директории root
     command: >
       bash -c "
         apt-get update -qq &&
         apt-get install -y --no-install-recommends openssh-server rsync &&
         mkdir -p /var/run/sshd &&
+        mkdir -p /root/.ssh &&
+        chmod 700 /root &&
         echo 'root:password' | chpasswd &&
         sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config &&
         sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config &&
-        sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/' /etc/ssh/sshd_config &&
+        sed -i 's|#Subsystem sftp /usr/lib/openssh/sftp-server|Subsystem sftp internal-sftp|' /etc/ssh/sshd_config &&
+        echo -e 'Match User root\n  ChrootDirectory %h\n  ForceCommand internal-sftp\n  AllowTcpForwarding no\n  X11Forwarding no\n' >> /etc/ssh/sshd_config &&
         ssh-keygen -A &&
         /usr/sbin/sshd -D
       "
