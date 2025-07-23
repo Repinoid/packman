@@ -51,7 +51,7 @@ func Receiver(host, user, password, localPath, remotePath string) (err error) {
 		return fmt.Errorf("error writing local file: %w", err)
 	}
 
-	fmt.Printf("File %s downloaded successfully!", localPath)
+	fmt.Printf("File %s downloaded successfully!\n", localPath)
 
 	return
 }

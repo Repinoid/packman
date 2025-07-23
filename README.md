@@ -13,9 +13,10 @@ pm create ./packet.json
 pm update ./packages.json
 ```
 
-конфигурации в packet.json и packages.json
+конфигурации в packet.json и packages.json<br>
+Параметры SSL в ***sshConf.json***
 
-Если принципиально, могу добавить тесты, с Suite & testcontainer
+Если принципиально, могу добавить тесты, с Suite & testcontainer<hr>
 
 
 *Сделать на GO пакетный менеджер*
