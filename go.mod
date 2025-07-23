@@ -2,11 +2,9 @@ module gorcom
 
 go 1.23.0
 
-
 require (
 	github.com/pkg/sftp v1.13.9
 	golang.org/x/crypto v0.40.0
-	google.golang.org/grpc v1.74.2
 	gotest.tools/v3 v3.5.2
 )
 
