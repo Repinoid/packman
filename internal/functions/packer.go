@@ -3,6 +3,7 @@ package functions
 import (
 	"archive/zip"
 	"fmt"
+	"sync"
 
 	"io"
 	"os"
@@ -12,6 +13,9 @@ import (
 )
 
 func U0packer(upa *models.Upack) (err error) {
+
+	var wg sync.WaitGroup
+	wg.Add(len(upa.Packets))
 
 	// итерация по пакетам - определение в какой архив писать и ограничение по версиям
 	for _, pack := range upa.Packets {
@@ -37,7 +41,6 @@ func U0packer(upa *models.Upack) (err error) {
 		defer zf.Close()
 
 		zipWriter := zip.NewWriter(zf)
-		defer zipWriter.Close()
 
 		// итерация по папкам заданным в "targets"
 		for _, upat := range upa.Targets {
@@ -51,7 +54,7 @@ func U0packer(upa *models.Upack) (err error) {
 			}
 
 			// Устанавливаем комментарий с версией
-			zipWriter.SetComment(fmt.Sprintf("Version: %s", upa.Version))
+			zipWriter.SetComment(upa.Version)
 
 			// пакуем файлы, прошедшие отбор, в архив
 			for _, f := range filesToZip {
@@ -59,6 +62,7 @@ func U0packer(upa *models.Upack) (err error) {
 				if err != nil {
 					return err
 				}
+				header.Method = zip.Deflate
 				writer, err := zipWriter.CreateHeader(header)
 				if err != nil {
 					return err
@@ -75,11 +79,16 @@ func U0packer(upa *models.Upack) (err error) {
 				}
 			}
 		}
-		err = ssher.LoadBySSH(models.SSHConf.Host, models.SSHConf.User, models.SSHConf.Password, pack.Name, "/"+pack.Name)
-		if err != nil {
-			return err
-		}
-	}
+		zipWriter.Close() // !!!! чортов defer
 
+		go func() {
+			defer wg.Done()
+			err = ssher.LoadBySSH(models.SSHConf.Host, models.SSHConf.User, models.SSHConf.Password, pack.Name, "/"+pack.Name)
+			if err != nil {
+				return
+			}
+		}()
+	}
+	wg.Wait()
 	return
 }
