@@ -23,8 +23,7 @@ func main() {
 
 	// Если есть флаг -debug
 	Level := slog.LevelInfo
-	isDebug := false
-	restoreFlag := flag.Bool("debug", isDebug, "Минимальный уровень логирования")
+	restoreFlag := flag.Bool("debug", false, "Минимальный уровень логирования")
 	flag.Parse()
 	if *restoreFlag {
 		Level = slog.LevelDebug
@@ -70,7 +69,7 @@ func Run(ctx context.Context) (err error) {
 		if err != nil {
 			return err
 		}
-		fmt.Printf("%+v\n", upa)
+		//fmt.Printf("%+v\n", upa)
 		err = functions.U0packer(upa)
 		if err != nil {
 			return err
@@ -79,7 +78,6 @@ func Run(ctx context.Context) (err error) {
 	}
 	upa, err := functions.UnmarUnPack([]byte(data))
 	functions.UnPack(upa)
-
 
 	return
 }

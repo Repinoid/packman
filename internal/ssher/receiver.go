@@ -7,8 +7,6 @@ import (
 
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
-
-	"gorcom/internal/models"
 )
 
 func Receiver(host, user, password, localPath, remotePath string) (err error) {
@@ -53,7 +51,7 @@ func Receiver(host, user, password, localPath, remotePath string) (err error) {
 		return fmt.Errorf("error writing local file: %w", err)
 	}
 
-	models.Logger.Debug("File downloaded successfully!", "", localPath)
+	fmt.Printf("File %s downloaded successfully!", localPath)
 
 	return
 }
