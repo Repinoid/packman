@@ -1,22 +1,48 @@
+version: '3.8'
+
 services:
   ssh-server:
     image: ubuntu:22.04
-    container_name: ssh-test-server
+    container_name: ss
     ports:
       - "2222:22"
     environment:
-      - TZ=UTC
+      TZ: UTC
+      DEBIAN_FRONTEND: noninteractive
     volumes:
-      - ./ssh-data:/root  # (опционально) для сохранения данных между перезапусками
-    command: >
+      - ./ssh-data:/root
+    command: >-
       bash -c "
-        apt-get update -qq &&
-        apt-get install -y --no-install-recommends openssh-server rsync &&
-        mkdir -p /var/run/sshd &&
-        echo 'root:password' | chpasswd &&
-        sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config &&
-        sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config &&
-        sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/' /etc/ssh/sshd_config &&
-        ssh-keygen -A &&
-        /usr/sbin/sshd -D
+        # Установка пакетов
+        apt-get update -y
+        apt-get install -y --no-install-recommends openssh-server rsync
+        
+        # Настройка SSH
+        mkdir -p /var/run/sshd
+        echo 'root:password' | chpasswd
+        
+        # Создание корректного конфига
+        {
+          echo 'Port 22'
+          echo 'ListenAddress 0.0.0.0'
+          echo 'Protocol 2'
+          echo 'PermitRootLogin yes'
+          echo 'PasswordAuthentication yes'
+          echo 'PubkeyAuthentication yes'
+          echo 'UseDNS no'
+          echo 'MaxAuthTries 3'
+          echo 'MaxSessions 10'
+          echo 'ClientAliveInterval 30'
+          echo 'Subsystem sftp internal-sftp -f AUTHPRIV -l INFO'
+        } > /etc/ssh/sshd_config
+        
+        # Установка прав
+        chmod 600 /etc/ssh/sshd_config
+        
+        # Генерация ключей
+        ssh-keygen -A -q
+        
+        # Запуск сервера
+        exec /usr/sbin/sshd -D
       "
+      

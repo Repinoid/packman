@@ -80,10 +80,33 @@ func Run(ctx context.Context) (err error) {
 	upa, err := functions.UnmarUnPack([]byte(data))
 	functions.UnPack(upa)
 
-
-
 	// op, right, err := functions.ParseComparisonWithRegex("  <  2.0  ")
 	// fmt.Printf("Parsed: op='%s', right='%s' %v\n", op, right, err)
 
 	return
 }
+
+/*
+# services:
+#   ssh-server:
+#     image: ubuntu:22.04
+#     container_name: ss
+#     ports:
+#       - "2222:22"
+#     environment:
+#       - TZ=UTC
+#     volumes:
+#       - ./ssh-data:/root  # (опционально) для сохранения данных между перезапусками
+#     command: >
+#       bash -c "
+#         apt-get update -qq &&
+#         apt-get install -y --no-install-recommends openssh-server rsync &&
+#         mkdir -p /var/run/sshd &&
+#         echo 'root:password' | chpasswd &&
+#         sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config &&
+#         sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config &&
+#         sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/' /etc/ssh/sshd_config &&
+#         ssh-keygen -A &&
+#         /usr/sbin/sshd -D
+#       "
+*/
