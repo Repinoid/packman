@@ -43,7 +43,7 @@ packet.json
 ```
 Пример файла для распаковки:
 
-packages.json
+packages.json 
 ```
 {
  "packages": [
