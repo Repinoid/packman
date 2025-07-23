@@ -56,7 +56,7 @@ func Run(ctx context.Context) (err error) {
 		models.Logger.Error("Ошибка чтения конфигурации файлa sshConf.json ", "err", err)
 		return
 	}
-	
+
 	err = json.Unmarshal([]byte(sshConfData), &models.SSHConf)
 	if err != nil {
 		models.Logger.Error("Ошибка в конфигурации SSH, файл sshConf.json ", "err", err)
@@ -70,7 +70,7 @@ func Run(ctx context.Context) (err error) {
 
 	fmt.Printf("%+v\n", upa)
 
-	err = functions.Upacker(upa)
+	err = functions.U0packer(upa)
 
 	// op, right, err := functions.ParseComparisonWithRegex("  <  2.0  ")
 	// fmt.Printf("Parsed: op='%s', right='%s' %v\n", op, right, err)

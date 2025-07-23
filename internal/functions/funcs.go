@@ -26,7 +26,7 @@ func Walk(what, excluder string) (filesToZip []FileWinfo, err error) {
 	// папка искомого файла
 	folder := filepath.Dir(what)
 
-	fmt.Println("On Unix:")
+	models.Logger.Debug("what to pack %s, excluder is %s", what, excluder)
 
 	err = filepath.Walk(folder,
 		// path - перебираются имена (с путями) файлов в папке folder
@@ -86,6 +86,7 @@ func UnmarPack(data []byte) (u *models.Upack, err error) {
 
 // Upacker пакует в архив
 func Upacker(upa *models.Upack) (err error) {
+
 	for _, u := range upa.Targets {
 		exclude := u.(map[string]string)["exclude"]
 		// возвращает слайс имён  файлов для упаковки
