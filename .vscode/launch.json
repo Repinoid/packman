@@ -11,11 +11,10 @@
             "mode": "auto",
             "program": "${fileDirname}",
             "args": [
-                "create",
-                "./packet.json",
+                "update",
+                "./packages.json",
                 "-debug",
             ]
-
         }
     ]
 }

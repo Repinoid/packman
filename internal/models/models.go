@@ -38,6 +38,10 @@ type Package struct {
 	Ver  string `json:"ver,omitempty"` // omitempty - необязательно есть версия
 }
 
+type Packages struct {
+	Packs []Package `json:"packages"`
+}
+
 /*
 Пример файла пакета для упаковки:
 packet.json

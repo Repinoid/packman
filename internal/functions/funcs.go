@@ -81,6 +81,16 @@ func UnmarPack(data []byte) (u *models.Upack, err error) {
 	return &upa, nil
 }
 
+// UnmarPack анмаршаллит данные из файла с конфигурацией распаковки
+func UnmarUnPack(data []byte) (u models.Packages, err error) {
+	upa := models.Packages{}
+	err = json.Unmarshal(data, &upa)
+	if err != nil {
+		return
+	}
+	return upa, nil
+}
+
 // ParseComparisonWithRegex определяет корректность условия по версии пакета, возвращает строку операции сравнения и строку с номером версии
 func ParseComparisonWithRegex(expr string) (op, right string, err error) {
 	// Регулярное выражение для операторов сравнения

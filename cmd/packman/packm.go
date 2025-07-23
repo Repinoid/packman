@@ -45,12 +45,14 @@ func main() {
 
 func Run(ctx context.Context) (err error) {
 
+	// чтение из JSON файла во втором агрументе CLI
 	data, err := os.ReadFile(os.Args[2])
 	if err != nil {
 		models.Logger.Error("os.ReadFile  ", "err", err)
 		return
 	}
 
+	// чтение конфигурации SSH
 	sshConfData, err := os.ReadFile("sshConf.json")
 	if err != nil {
 		models.Logger.Error("Ошибка чтения конфигурации файлa sshConf.json ", "err", err)
@@ -63,14 +65,22 @@ func Run(ctx context.Context) (err error) {
 		return
 	}
 
-	upa, err := functions.UnmarPack([]byte(data))
-	if err != nil {
-		return
+	if os.Args[1] == "create" {
+		upa, err := functions.UnmarPack([]byte(data))
+		if err != nil {
+			return err
+		}
+		fmt.Printf("%+v\n", upa)
+		err = functions.U0packer(upa)
+		if err != nil {
+			return err
+		}
+		return err
 	}
+	upa, err := functions.UnmarUnPack([]byte(data))
+	functions.UnPack(upa)
 
-	fmt.Printf("%+v\n", upa)
 
-	err = functions.U0packer(upa)
 
 	// op, right, err := functions.ParseComparisonWithRegex("  <  2.0  ")
 	// fmt.Printf("Parsed: op='%s', right='%s' %v\n", op, right, err)
