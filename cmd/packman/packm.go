@@ -2,20 +2,37 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"flag"
 	"fmt"
 	"gorcom/internal/functions"
 	"gorcom/internal/models"
 	"log/slog"
 	"os"
+	"strings"
 )
 
 func main() {
 
 	ctx := context.Background()
 
+	if len(os.Args) < 2 || (strings.ToLower(os.Args[1]) != "create" && strings.ToLower(os.Args[1]) != "update") {
+		fmt.Println("Неверные аргументы. Запуск программы pm create ./packet.json или pm update ./packages.json")
+		os.Exit(1)
+	}
+
+	// Если есть флаг -debug
+	Level := slog.LevelInfo
+	isDebug := false
+	restoreFlag := flag.Bool("debug", isDebug, "Минимальный уровень логирования")
+	flag.Parse()
+	if *restoreFlag {
+		Level = slog.LevelDebug
+	}
+
 	handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level:     slog.LevelDebug, // Минимальный уровень логирования
-		AddSource: true,            // Добавлять информацию об исходном коде
+		Level:     Level,
+		AddSource: true, // Добавлять информацию об исходном коде
 	})
 	models.Logger = slog.New(handler)
 	slog.SetDefault(models.Logger)
@@ -28,13 +45,25 @@ func main() {
 
 func Run(ctx context.Context) (err error) {
 
-	data, err := os.ReadFile("packet.json")
+	data, err := os.ReadFile(os.Args[2])
 	if err != nil {
 		models.Logger.Error("os.ReadFile  ", "err", err)
 		return
 	}
 
-	upa, err := functions.Unmar([]byte(data))
+	sshConfData, err := os.ReadFile("sshConf.json")
+	if err != nil {
+		models.Logger.Error("Ошибка чтения конфигурации файлa sshConf.json ", "err", err)
+		return
+	}
+	
+	err = json.Unmarshal([]byte(sshConfData), &models.SSHConf)
+	if err != nil {
+		models.Logger.Error("Ошибка в конфигурации SSH, файл sshConf.json ", "err", err)
+		return
+	}
+
+	upa, err := functions.UnmarPack([]byte(data))
 	if err != nil {
 		return
 	}

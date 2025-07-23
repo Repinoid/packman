@@ -2,8 +2,16 @@ package models
 
 import "log/slog"
 
+type sshConfStruct struct {
+	Host       string `json:"host"`       // Адрес сервера
+	User       string `json:"user"`       // Имя пользователя
+	Password   string `json:"pasword"`    // Имя пользователя
+	RemotePath string `json:"remotepath"` // Удалённый путь на сервере
+}
+
 var (
 	Logger *slog.Logger
+	SSHConf sshConfStruct
 )
 
 // Target для анмаршаллинга  {"path", "./archive_this2/*", "exclude": "*.tmp"}
@@ -29,9 +37,6 @@ type Package struct {
 	Name string `json:"name"`
 	Ver  string `json:"ver,omitempty"` // omitempty - необязательно есть версия
 }
-
-
-
 
 /*
 Пример файла пакета для упаковки:

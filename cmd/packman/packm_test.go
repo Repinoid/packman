@@ -65,7 +65,7 @@ func Test_unmar(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := functions.Unmar([]byte(tt.data))
+			_, err := functions.UnmarPack([]byte(tt.data))
 			if tt.isErr {
 				assert.ErrorContains(t, err, tt.errStr)
 			} else {

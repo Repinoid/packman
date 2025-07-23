@@ -1,0 +1,6 @@
+{
+    "host": "localhost:2222",       
+    "user": "root",
+    "pasword": "password",
+    "remotepath": "./"
+}

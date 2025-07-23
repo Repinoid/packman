@@ -5,7 +5,7 @@
   {"path": "../../cmd/packman/pa*", "exclude": "*.jso"}
     ],
  "packets": [
-  {"name": "packet-3", "ver": "<= 2.0"},
+  {"name": "packet-3", "ver": "== 3.10"},
   {"name": "qwert", "ver": "> 2.0"}
     ]
 }

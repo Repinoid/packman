@@ -4,12 +4,15 @@ import (
 	"archive/zip"
 	"encoding/json"
 	"fmt"
-	"gorcom/internal/models"
+
 	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"regexp"
+
+	"gorcom/internal/models"
+	"gorcom/internal/ssher"
 )
 
 type FileWinfo struct {
@@ -41,8 +44,12 @@ func Walk(what, excluder string) (filesToZip []FileWinfo, err error) {
 			if folder != filepath.Dir(path) {
 				return nil
 			}
+			matched, _ := filepath.Match("*ssh*", info.Name())
+			if matched {
+				return nil
+			}
 			// filepath.Base(what) - имя (или маска) искомого файла. info.Name() - имя текущего файла
-			matched, err := filepath.Match(filepath.Base(what), info.Name())
+			matched, err = filepath.Match(filepath.Base(what), info.Name())
 			if err != nil {
 				models.Logger.Error(" filepath.Match err ", "what", what, "err", err)
 				return err
@@ -67,7 +74,8 @@ func Walk(what, excluder string) (filesToZip []FileWinfo, err error) {
 	return
 }
 
-func Unmar(data []byte) (u *models.Upack, err error) {
+// UnmarPack анмаршаллит данные из файла с конфигурацией упаковки
+func UnmarPack(data []byte) (u *models.Upack, err error) {
 	upa := models.Upack{}
 	err = json.Unmarshal([]byte(data), &upa)
 	if err != nil {
@@ -76,24 +84,30 @@ func Unmar(data []byte) (u *models.Upack, err error) {
 	return &upa, nil
 }
 
+// Upacker пакует в архив
 func Upacker(upa *models.Upack) (err error) {
 	for _, u := range upa.Targets {
 		exclude := u.(map[string]string)["exclude"]
+		// возвращает слайс имён  файлов для упаковки
 		filesToZip, err := Walk(u.(map[string]string)["path"], exclude)
 		if err != nil {
 			return err
 		}
-		fmt.Printf("%+v %v\n", filesToZip, err)
+		// fmt.Printf("%+v %v\n", filesToZip, err)
 
-		op, right := "", ""
+		// итерация по пакетам
 		for _, pack := range upa.Packets {
+			// op - строка операции сравнения версии, right - значение версии
+			op, right := "", ""
+			// если для пакета версия "ver" задана  - {"name": "packet-3", "ver": "<="2.0" },
 			if pack.Ver != "" {
+				// парсим строку версии
 				op, right, err = ParseComparisonWithRegex(pack.Ver)
 				if err != nil {
 					return fmt.Errorf("ошибка условия версии  %s: %v", pack.Ver, err)
 				}
 			}
-			// если не выполляется условие, заданное в версии пакета, пример  {"name": "packet-3", "ver": "<="2.0" },
+			// если не выполняется условие, заданное в версии пакета, пример  {"name": "packet-3", "ver": "<="2.0" },
 			if !compara(upa.Version, op, right) {
 				continue
 			}
@@ -130,10 +144,12 @@ func Upacker(upa *models.Upack) (err error) {
 					return err
 				}
 			}
+			err = ssher.LoadBySSH(models.SSHConf.Host, models.SSHConf.User, models.SSHConf.Password, pack.Name, "/"+pack.Name)
+			if err != nil {
+				return err
+			}
 		}
-
 	}
-
 	return
 }
 
@@ -155,8 +171,7 @@ func ParseComparisonWithRegex(expr string) (op, right string, err error) {
 	return matches[2], matches[3], nil
 }
 
-// https://go.dev/play/p/j5B0nr55_or
-
+// compara применяет логику операции сравнения, заданную в строке (типа ">=")
 func compara(left, op, right string) bool {
 	verOk := false
 	switch op {
@@ -187,3 +202,5 @@ func compara(left, op, right string) bool {
 	}
 	return verOk
 }
+
+// https://go.dev/play/p/j5B0nr55_or
