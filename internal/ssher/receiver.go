@@ -10,10 +10,6 @@ import (
 )
 
 func Receiver(host, user, password, localPath, remotePath string) (err error) {
-	// Параметры соединения
-	//	port := "22"
-	//	filePathOnServer := "/path/to/file.txt"
-	//	localFilePath := "./downloaded_file.txt"
 
 	config := &ssh.ClientConfig{
 		User:            user,

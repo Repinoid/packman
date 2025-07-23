@@ -1,0 +1,13 @@
+Port 22
+ListenAddress 0.0.0.0
+Protocol 2
+PermitRootLogin yes
+PasswordAuthentication yes
+PubkeyAuthentication yes
+UseDNS no
+ClientAliveInterval 60
+ClientAliveCountMax 3
+MaxStartups 100:30:200
+MaxSessions 100
+MaxAuthTries 10
+Subsystem sftp internal-sftp -f AUTHPRIV -l INFO -u 0022

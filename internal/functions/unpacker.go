@@ -15,7 +15,7 @@ func UnPack(upa models.Packages) (err error) {
 		}
 	}
 	for _, u := range upa.Packs {
-		err = ssher.Receiver(models.SSHConf.Host, models.SSHConf.User, models.SSHConf.Password, u.Name, "/" + u.Name)
+		err = ssher.Receiver(models.SSHConf.Host, models.SSHConf.User, models.SSHConf.Password, u.Name+".tmp", "/"+u.Name)
 		if err != nil {
 			return err
 		}
@@ -25,6 +25,5 @@ func UnPack(upa models.Packages) (err error) {
 		}
 	}
 
-	//receiver(host, user, password, localPath, remotePath string) {
 	return
 }
