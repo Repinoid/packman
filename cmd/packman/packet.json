@@ -2,7 +2,8 @@
  "name": "packet-1",
  "ver": "1.10",
  "targets": [
-  " ../tests/stream*", 
+ 
+   "../tests/stream*", 
   {"path": "../tests/U0*", "exclude": "*hand*"},
   {"path": "../tests/g*", "exclude": "gsender.go"},
   {"path": "../tests/reglog.*"}

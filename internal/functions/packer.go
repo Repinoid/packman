@@ -40,14 +40,16 @@ func U0packer(upa *models.Upack) (err error) {
 		defer zipWriter.Close()
 
 		// итерация по папкам заданным в "targets"
-		for _, u := range upa.Targets {
-			exclude := u.(map[string]string)["exclude"]
+		for _, upat := range upa.Targets {
+			// exclude, ok  - если ключа "exclude" нет, exclude = ""
+			exclude, ok := upat.(map[string]string)["exclude"]
+			_ = ok
 			// возвращает слайс имён  файлов для упаковки
-			filesToZip, err := Walk(u.(map[string]string)["path"], exclude)
+			filesToZip, err := Walk(upat.(map[string]string)["path"], exclude)
 			if err != nil {
 				return err
 			}
-			
+
 			// Устанавливаем комментарий с версией
 			zipWriter.SetComment(fmt.Sprintf("Version: %s", upa.Version))
 

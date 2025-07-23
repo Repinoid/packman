@@ -59,7 +59,6 @@ func (upa *Upack) UnmarshalJSON(data []byte) (err error) {
 		if t.Name == "" {
 			return errors.New("no \"Name\" field on Packets")
 		}
-
 	}
 	return
 }
