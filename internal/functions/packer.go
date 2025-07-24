@@ -33,61 +33,62 @@ func U0packer(upa *models.Upack) (err error) {
 				continue
 			}
 		}
-
-		zf, err := os.Create(pack.Name)
-		if err != nil {
-			return fmt.Errorf("ошибка создания файла %s: %v", pack.Name, err)
-		}
-		defer zf.Close()
-
-		zipWriter := zip.NewWriter(zf)
-
-		// итерация по папкам заданным в "targets"
-		for _, upat := range upa.Targets {
-			// exclude, ok  - если ключа "exclude" нет, exclude = ""
-			exclude, ok := upat.(map[string]string)["exclude"]
-			_ = ok
-			// возвращает слайс имён  файлов для упаковки
-			filesToZip, err := Walk(upat.(map[string]string)["path"], exclude)
+		// анонимизация дабы не плодить сущности. упаковка в архив и засыл по SSH горутиной
+		err = func(pName string) (err error) {
+			zf, err := os.Create(pName)
 			if err != nil {
-				return err
+				return fmt.Errorf("ошибка создания файла %s: %v", pName, err)
 			}
+			defer zf.Close()
 
-			// Устанавливаем комментарий с версией
-			zipWriter.SetComment(upa.Version)
+			zipWriter := zip.NewWriter(zf)
+			defer zipWriter.Close() // !!!! чортов defer
 
-			// пакуем файлы, прошедшие отбор, в архив
-			for _, f := range filesToZip {
-				header, err := zip.FileInfoHeader(f.Info)
+			// итерация по папкам заданным в "targets"
+			for _, upat := range upa.Targets {
+				// exclude, ok  - если ключа "exclude" нет, exclude = ""
+				exclude, ok := upat.(map[string]string)["exclude"]
+				_ = ok
+				// возвращает слайс имён  файлов для упаковки
+				filesToZip, err := Walk(upat.(map[string]string)["path"], exclude)
 				if err != nil {
 					return err
 				}
-				header.Method = zip.Deflate
-				writer, err := zipWriter.CreateHeader(header)
-				if err != nil {
-					return err
-				}
-				fileToArchive, err := os.Open(f.FilePath)
-				if err != nil {
-					return err
-				}
-				defer fileToArchive.Close()
+				// Устанавливаем комментарий с версией
+				zipWriter.SetComment(upa.Version)
+				// пакуем файлы, прошедшие отбор, в архив
+				for _, f := range filesToZip {
+					header, err := zip.FileInfoHeader(f.Info)
+					if err != nil {
+						return err
+					}
+					header.Method = zip.Deflate
+					writer, err := zipWriter.CreateHeader(header)
+					if err != nil {
+						return err
+					}
+					fileToArchive, err := os.Open(f.FilePath)
+					if err != nil {
+						return err
+					}
+					defer fileToArchive.Close()
 
-				_, err = io.Copy(writer, fileToArchive)
-				if err != nil {
-					return err
+					_, err = io.Copy(writer, fileToArchive)
+					if err != nil {
+						return err
+					}
 				}
 			}
-		}
-		zipWriter.Close() // !!!! чортов defer
+			go func() {
+				defer wg.Done()
+				err = ssher.LoadBySSH(models.SSHConf.Host, models.SSHConf.User, models.SSHConf.Password, pName, "/files/"+pName)
+				if err != nil {
+					return
+				}
+			}()
+			return
+		}(pack.Name)
 
-		go func() {
-			defer wg.Done()
-			err = ssher.LoadBySSH(models.SSHConf.Host, models.SSHConf.User, models.SSHConf.Password, pack.Name, "/"+pack.Name)
-			if err != nil {
-				return
-			}
-		}()
 	}
 	wg.Wait()
 	return

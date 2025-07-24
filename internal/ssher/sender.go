@@ -47,7 +47,7 @@ func uploadFile(sftpClient *sftp.Client, localPath string, remotePath string) er
 	fmt.Printf("Файл %s успешно загружен на сервер как %s\n", localPath, remotePath)
 	return nil
 }
-
+// LoadBySSH загрузка локального файла localPath в remotePath контейнера
 func LoadBySSH(host, user, password, localPath, remotePath string) (err error) {
 
 	// Подключаемся по SSH

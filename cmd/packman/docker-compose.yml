@@ -8,6 +8,8 @@ services:
       - TZ=UTC
     volumes:
       - ./ssh-data:/root  
+      - ./files:/files
+
     command: >
       bash -c "
         apt-get update -qq &&

@@ -13,39 +13,52 @@ import (
 func UnPack(upa models.Packages) (err error) {
 
 	// если у какого то пакета нет имени - на выход
-	for _, u := range upa.Packs {
-		if u.Name == "" {
+	for _, packa := range upa.Packs {
+		if packa.Name == "" {
 			return errors.New("no \"Name\" field on Packets")
 		}
 	}
-	for _, u := range upa.Packs {
-		err = ssher.Receiver(models.SSHConf.Host, models.SSHConf.User, models.SSHConf.Password, u.Name+".tmp", "/"+u.Name)
+	for _, packa := range upa.Packs {
+
+		recFolder := "fromSSH"
+		if _, err := os.Stat(recFolder); os.IsNotExist(err) {
+			err := os.Mkdir(recFolder, 0777)
+			if err != nil {
+				return err
+			}
+		}
+		
+		tmpFile := packa.Name + ".tmp"
+		distantFile := "/files/" + packa.Name
+		receivedFile := recFolder + "/New_" + packa.Name
+
+		err = ssher.Receiver(models.SSHConf.Host, models.SSHConf.User, models.SSHConf.Password, tmpFile, distantFile)
 		if err != nil {
 			return err
 		}
 		// если в пакете задано условие по версии
-		if u.Ver != "" {
-			zipReader, err := zip.OpenReader(u.Name + ".tmp")
+		if packa.Ver != "" {
+			zipReader, err := zip.OpenReader(tmpFile)
 			if err != nil {
 				log.Fatal(err)
 			}
 			// Получаем комментарий, в котором прописана версия полученного пакета
 			comment := zipReader.Comment
 			zipReader.Close()
-			op, right, err := ParseComparisonWithRegex(u.Ver)
+			op, right, err := ParseComparisonWithRegex(packa.Ver)
 			if err != nil {
 				return fmt.Errorf("ошибка условия версии  %s: %v", comment, err)
 			}
 			// если не выполняется условие, заданное в версии пакета, удаляем скаченный файл
 			if !compara(comment, op, right) {
-				os.Remove(u.Name + ".tmp")
+				os.Remove(tmpFile)
 			} else {
-				os.Rename(u.Name+".tmp", "New_"+u.Name)
+				os.Rename(tmpFile, receivedFile)
 			}
 		} else {
-			err = os.Rename(u.Name+".tmp", "New_"+u.Name)
+			err = os.Rename(tmpFile, receivedFile)
 			if err != nil {
-				fmt.Println("Ошибка при переименовании:", err)
+				return fmt.Errorf("oшибка при переименовании %s to %s, err %w", tmpFile, receivedFile, err)
 			}
 		}
 	}
