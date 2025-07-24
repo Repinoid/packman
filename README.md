@@ -1,3 +1,5 @@
+to be continued ....
+
 В папке cmd/packman main.go<br>
 Перейти в эту папку<br>
 ***cd cmd/packman***
