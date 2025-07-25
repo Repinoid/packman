@@ -16,6 +16,7 @@ func U0packer(upa *models.Upack) (err error) {
 
 	var wg sync.WaitGroup
 	wg.Add(len(upa.Packets))
+	ch := make(chan error)
 
 	// итерация по пакетам - определение в какой архив писать и ограничение по версиям
 	for _, pack := range upa.Packets {
@@ -45,12 +46,12 @@ func U0packer(upa *models.Upack) (err error) {
 			defer zipWriter.Close() // !!!! чортов defer
 
 			// итерация по папкам заданным в "targets"
-			for _, upat := range upa.Targets {
+			for _, targa := range upa.Targets {
 				// exclude, ok  - если ключа "exclude" нет, exclude = ""
-				exclude, ok := upat.(map[string]string)["exclude"]
+				exclude, ok := targa.(map[string]string)["exclude"]
 				_ = ok
 				// возвращает слайс имён  файлов для упаковки
-				filesToZip, err := Walk(upat.(map[string]string)["path"], exclude)
+				filesToZip, err := Walk(targa.(map[string]string)["path"], exclude)
 				if err != nil {
 					return err
 				}
@@ -79,17 +80,24 @@ func U0packer(upa *models.Upack) (err error) {
 					}
 				}
 			}
-			go func() {
+			go func(ch chan<- error) {
 				defer wg.Done()
 				err = ssher.LoadBySSH(models.SSHConf.Host, models.SSHConf.User, models.SSHConf.Password, pName, "/files/"+pName)
-				if err != nil {
-					return
-				}
-			}()
+				ch <- err
+			}(ch)
 			return
 		}(pack.Name)
 
 	}
-	wg.Wait()
+
+	go func() {
+		wg.Wait()
+		close(ch)
+	}()
+	// Читаем результаты из канала
+	for result := range ch {
+		fmt.Println(result)
+	}
+
 	return
 }
