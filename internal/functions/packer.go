@@ -2,8 +2,10 @@ package functions
 
 import (
 	"archive/zip"
+	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"io"
 	"os"
@@ -34,13 +36,17 @@ func U0packer(upa *models.Upack) (err error) {
 				continue
 			}
 		}
+		ctx := context.Background()
+
 		// анонимизация дабы не плодить сущности. упаковка в архив и засыл по SSH горутиной
-		err = func(pName string) (err error) {
+		err = func(pName string, ctx context.Context) (err error) {
 			zf, err := os.Create(pName)
 			if err != nil {
 				return fmt.Errorf("ошибка создания файла %s: %v", pName, err)
 			}
 			defer zf.Close()
+
+			//	time.Sleep(500 * time.Millisecond)
 
 			zipWriter := zip.NewWriter(zf)
 			defer zipWriter.Close() // !!!! чортов defer
@@ -80,13 +86,22 @@ func U0packer(upa *models.Upack) (err error) {
 					}
 				}
 			}
-			go func(ch chan<- error) {
+			ctx, cancel := context.WithTimeout(ctx, 200*time.Millisecond)
+
+			go func(ch chan<- error, ctx context.Context) {
+				defer cancel() // Always call cancel to release resources
 				defer wg.Done()
-				err = ssher.LoadBySSH(models.SSHConf.Host, models.SSHConf.User, models.SSHConf.Password, pName, "/files/"+pName)
-				ch <- err
-			}(ch)
+				err := ssher.LoadBySSH(models.SSHConf.Host, models.SSHConf.User, models.SSHConf.Password, pName, "/files/"+pName)
+				select {
+				case ch <- err:
+					// Используем результат
+				case <-ctx.Done():
+					ch <- ctx.Err()
+				}
+			}(ch, ctx)
+
 			return
-		}(pack.Name)
+		}(pack.Name, ctx)
 
 	}
 
