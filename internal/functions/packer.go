@@ -23,13 +23,13 @@ func U0packer(upa *models.Upack) (err error) {
 	// итерация по пакетам - определение в какой архив писать и ограничение по версиям
 	for _, pack := range upa.Packets {
 		// op - строка операции сравнения версии, right - значение версии
-		op, right := "", ""
+		//op, right := "", ""
 		// если для пакета версия "ver" задана  - {"name": "packet-3", "ver": "<="2.0" },
 		if pack.Ver != "" {
 			// парсим строку версии
-			op, right, err = ParseComparisonWithRegex(pack.Ver)
+			op, right, err := ParseComparisonWithRegex(pack.Ver)
 			if err != nil {
-				return fmt.Errorf("ошибка условия версии  %s: %v", pack.Ver, err)
+				return fmt.Errorf("ошибка задания условия версии  %s: %v", pack.Ver, err)
 			}
 			// если не выполняется условие, заданное в версии пакета, пример  {"name": "packet-3", "ver": "<="2.0" },
 			if !compara(upa.Version, op, right) {
@@ -39,7 +39,7 @@ func U0packer(upa *models.Upack) (err error) {
 		ctx := context.Background()
 
 		// анонимизация дабы не плодить сущности. упаковка в архив и засыл по SSH горутиной
-		err = func(pName string, ctx context.Context) (err error) {
+		err := func(pName string, ctx context.Context) (err error) {
 			zf, err := os.Create(pName)
 			if err != nil {
 				return fmt.Errorf("ошибка создания файла %s: %v", pName, err)
@@ -89,12 +89,13 @@ func U0packer(upa *models.Upack) (err error) {
 			ctx, cancel := context.WithTimeout(ctx, 200*time.Millisecond)
 
 			go func(ch chan<- error, ctx context.Context) {
-				defer cancel() // Always call cancel to release resources
+				defer cancel()
 				defer wg.Done()
 				err := ssher.LoadBySSH(models.SSHConf.Host, models.SSHConf.User, models.SSHConf.Password, pName, "/files/"+pName)
 				select {
+				// пишем в канал ошибку загрузки на сервер или nil если ништяк
 				case ch <- err:
-					// Используем результат
+				// если таймаут - пишем в канал соотв. ошибку
 				case <-ctx.Done():
 					ch <- ctx.Err()
 				}
@@ -102,16 +103,21 @@ func U0packer(upa *models.Upack) (err error) {
 
 			return
 		}(pack.Name, ctx)
-
+		if err != nil {
+			models.Logger.Error("Ошибка упаковки ", "файл архива", pack.Name, "Err", err)
+		}
 	}
 
+	// дожидаемся завершения всех горутин и закрываем канал
 	go func() {
 		wg.Wait()
 		close(ch)
 	}()
-	// Читаем результаты из канала
+	// Читаем ошибки из канала
 	for result := range ch {
-		fmt.Println(result)
+		if result != nil {
+			fmt.Println(result)
+		}
 	}
 
 	return

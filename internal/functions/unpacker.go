@@ -60,6 +60,7 @@ func UnPack(upa models.Packages) (err error) {
 			if err != nil {
 				return fmt.Errorf("oшибка при переименовании %s to %s, err %w", tmpFile, receivedFile, err)
 			}
+			
 		}
 	}
 	return

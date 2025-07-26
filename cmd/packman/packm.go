@@ -76,8 +76,13 @@ func Run(ctx context.Context) (err error) {
 		}
 		return err
 	}
+
+	// если UPDATE
 	upa, err := functions.UnmarUnPack([]byte(data))
-	functions.UnPack(upa)
+	if err != nil {
+		return err
+	}
+	err = functions.UnPack(upa)
 
 	return
 }

@@ -78,6 +78,23 @@ func UnmarPack(data []byte) (u *models.Upack, err error) {
 	if err != nil {
 		return
 	}
+	// выведем содержимое анмаршаленного 
+	fmt.Printf("Pack name %s\nPack version %s\n", upa.Name, upa.Version)
+	for i, v := range upa.Targets {
+		fmt.Printf("Target %2d path %s ", i+1, v.(map[string]string)["path"])
+		if excl, ok := v.(map[string]string)["exclude"]; ok {
+			fmt.Printf("exclude %s", excl)
+		}
+		fmt.Println()
+	}
+	for i, v := range upa.Packets {
+		fmt.Printf("Packet %2d name %s ", i+1, v.Name)
+		if v.Ver != "" {
+			fmt.Printf("version %s", v.Ver)
+		}
+		fmt.Println()
+	}
+	fmt.Println()
 	return &upa, nil
 }
 
@@ -88,6 +105,17 @@ func UnmarUnPack(data []byte) (u models.Packages, err error) {
 	if err != nil {
 		return
 	}
+
+	for i, v := range upa.Packs {
+		fmt.Printf("Packet %2d name %s ", i+1, v.Name)
+		if v.Ver != "" {
+			fmt.Printf("version %s", v.Ver)
+		}
+		fmt.Println()
+	}
+	fmt.Println()
+
+
 	return upa, nil
 }
 
